@@ -1,17 +1,29 @@
 package ru.makproductions.tinkoffinternship.ui.activity
 
 import android.os.Bundle
-import com.arellomobile.mvp.MvpActivity
+import com.arellomobile.mvp.MvpAppCompatActivity
 import com.arellomobile.mvp.presenter.InjectPresenter
 import com.arellomobile.mvp.presenter.ProvidePresenter
 import io.reactivex.android.schedulers.AndroidSchedulers
+import kotlinx.android.synthetic.main.activity_main.*
 import ru.makproductions.tinkoffinternship.App
 import ru.makproductions.tinkoffinternship.R
-import ru.makproductions.tinkoffinternship.presenter.MainPresenter
-import ru.makproductions.tinkoffinternship.ui.adapter.NewsAdapter
+import ru.makproductions.tinkoffinternship.navigation.NewsNavigator
+import ru.makproductions.tinkoffinternship.navigation.Screens
+import ru.makproductions.tinkoffinternship.presenter.main.MainPresenter
 import ru.makproductions.tinkoffinternship.view.main.MainView
+import ru.terrakok.cicerone.NavigatorHolder
+import ru.terrakok.cicerone.commands.Command
+import ru.terrakok.cicerone.commands.Replace
+import timber.log.Timber
+import javax.inject.Inject
 
-class MainActivity : MvpActivity(), MainView {
+class MainActivity : MvpAppCompatActivity(), MainView {
+
+    @Inject
+    lateinit var navigatorHolder: NavigatorHolder
+
+    val navigator = NewsNavigator(this, R.id.fragment_container)
 
     @InjectPresenter
     lateinit var mainPresenter: MainPresenter
@@ -24,11 +36,28 @@ class MainActivity : MvpActivity(), MainView {
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        Timber.e("onCreate")
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         App.instance.appComponent.inject(this)
-        val newsAdapter = NewsAdapter(mainPresenter.getNewsListPresenter())
-        //news_recycler.adapter = newsAdapter
+        Timber.e("creating fragment! SavedInstance = " + savedInstanceState + " fragment_container = " + fragment_container)
+        navigator.applyCommands(arrayOf<Command>(Replace(Screens.Companion.NewsListScreen())))
     }
+
+    override fun onBackPressed() {
+        Timber.e("onBackPressed")
+        super.onBackPressed()
+    }
+
+    override fun onResumeFragments() {
+        super.onResumeFragments()
+        navigatorHolder.setNavigator(navigator)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        navigatorHolder.removeNavigator()
+    }
+
 
 }

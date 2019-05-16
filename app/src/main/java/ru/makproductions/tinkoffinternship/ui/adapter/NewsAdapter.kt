@@ -4,14 +4,14 @@ import android.support.v7.widget.RecyclerView
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.TextView
+import android.widget.LinearLayout
 import com.jakewharton.rxbinding2.view.RxView
 import kotlinx.android.synthetic.main.news_list_item.view.*
 import ru.makproductions.tinkoffinternship.R
-import ru.makproductions.tinkoffinternship.presenter.list.NewsListPresenter
+import ru.makproductions.tinkoffinternship.presenter.list.NewsAdapterPresenter
 import ru.makproductions.tinkoffinternship.view.list.NewsItemView
 
-class NewsAdapter(private var presenter: NewsListPresenter) : RecyclerView.Adapter<NewsAdapter.NewsViewHolder>() {
+class NewsAdapter(private var presenter: NewsAdapterPresenter) : RecyclerView.Adapter<NewsAdapter.NewsViewHolder>() {
 
     override fun onCreateViewHolder(viewGroup: ViewGroup, type: Int): NewsViewHolder {
         return NewsViewHolder(
@@ -19,7 +19,7 @@ class NewsAdapter(private var presenter: NewsListPresenter) : RecyclerView.Adapt
                 R.layout.news_list_item,
                 viewGroup,
                 false
-            ) as TextView
+            ) as LinearLayout
         )
     }
 
