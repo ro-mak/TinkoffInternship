@@ -1,0 +1,52 @@
+package ru.makproductions.tinkoffinternship.ui.fragment
+
+import android.os.Bundle
+import android.support.v7.widget.LinearLayoutManager
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
+import com.arellomobile.mvp.MvpAppCompatFragment
+import com.arellomobile.mvp.presenter.InjectPresenter
+import com.arellomobile.mvp.presenter.ProvidePresenter
+import io.reactivex.android.schedulers.AndroidSchedulers
+import kotlinx.android.synthetic.main.news_list_fragment.*
+import kotlinx.android.synthetic.main.news_list_fragment.view.*
+import ru.makproductions.tinkoffinternship.App
+import ru.makproductions.tinkoffinternship.R
+import ru.makproductions.tinkoffinternship.presenter.list.NewsListPresenter
+import ru.makproductions.tinkoffinternship.ui.adapter.NewsAdapter
+import ru.makproductions.tinkoffinternship.view.list.NewsListView
+import timber.log.Timber
+
+class NewsListFragment : MvpAppCompatFragment(), NewsListView {
+
+    @InjectPresenter
+    lateinit var presenter: NewsListPresenter
+
+    @ProvidePresenter
+    fun providePresenter(): NewsListPresenter {
+        val presenter = NewsListPresenter(AndroidSchedulers.mainThread())
+        App.instance.appComponent.inject(presenter)
+        return presenter
+    }
+
+    override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
+        Timber.e("OnCreateView")
+        val view = inflater.inflate(R.layout.news_list_fragment, container, false)
+        setupRecycler(view)
+        presenter.loadNews()
+        return view
+    }
+
+    private fun setupRecycler(view: View) {
+        val linearLayoutManager = LinearLayoutManager(activity)
+        view.news_recycler.layoutManager = linearLayoutManager
+        val newsAdapter = NewsAdapter(presenter.newsAdapterPresenterImpl)
+        view.news_recycler.adapter = newsAdapter
+    }
+
+    override fun onNewsLoaded() {
+        Timber.e("onNewsLoaded")
+        news_recycler.adapter?.notifyDataSetChanged()
+    }
+}
