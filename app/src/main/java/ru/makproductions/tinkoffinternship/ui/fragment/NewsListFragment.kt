@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.support.v7.widget.DividerItemDecoration
 import android.support.v7.widget.LinearLayoutManager
 import android.view.*
+import android.widget.Toast
 import com.arellomobile.mvp.MvpAppCompatFragment
 import com.arellomobile.mvp.presenter.InjectPresenter
 import com.arellomobile.mvp.presenter.ProvidePresenter
@@ -15,6 +16,7 @@ import ru.makproductions.tinkoffinternship.App
 import ru.makproductions.tinkoffinternship.R
 import ru.makproductions.tinkoffinternship.presenter.list.NewsListPresenter
 import ru.makproductions.tinkoffinternship.ui.adapter.NewsAdapter
+import ru.makproductions.tinkoffinternship.utils.NetworkStatus
 import ru.makproductions.tinkoffinternship.view.list.NewsListView
 import timber.log.Timber
 
@@ -35,6 +37,7 @@ class NewsListFragment : MvpAppCompatFragment(), NewsListView {
         val view = inflater.inflate(R.layout.news_list_fragment, container, false)
         setupRecycler(view)
         setHasOptionsMenu(true)
+        presenter.loadNews()
         return view
     }
 
@@ -47,7 +50,16 @@ class NewsListFragment : MvpAppCompatFragment(), NewsListView {
         view.news_recycler.adapter = newsAdapter
         view.news_swiperefresh.setOnRefreshListener({
             Timber.e("Refresh by swipe")
-            presenter.refreshNews()
+            if (NetworkStatus.isOnline) {
+                presenter.refreshNews()
+            } else {
+                Toast.makeText(
+                    context,
+                    "It seems something is wrong with the connection :( Please, try later",
+                    Toast.LENGTH_SHORT
+                ).show()
+                news_swiperefresh.isRefreshing = false
+            }
         })
     }
 
@@ -70,7 +82,15 @@ class NewsListFragment : MvpAppCompatFragment(), NewsListView {
         val id = item?.itemId
         if (id == R.id.menu_refresh) {
             Timber.e("Refresh by button")
-            presenter.refreshNews()
+            if (NetworkStatus.isOnline) {
+                presenter.refreshNews()
+            } else {
+                Toast.makeText(
+                    context,
+                    "It seems something is wrong with the connection :( Please, try later",
+                    Toast.LENGTH_SHORT
+                ).show()
+            }
         }
         return super.onOptionsItemSelected(item)
     }

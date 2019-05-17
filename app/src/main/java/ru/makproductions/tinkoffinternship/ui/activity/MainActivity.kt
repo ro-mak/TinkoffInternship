@@ -42,7 +42,10 @@ class MainActivity : MvpAppCompatActivity(), MainView {
         setContentView(R.layout.activity_main)
         App.instance.appComponent.inject(this)
         Timber.e("creating fragment! SavedInstance = " + savedInstanceState + " fragment_container = " + fragment_container)
-        navigator.applyCommands(arrayOf<Command>(Forward(Screens.Companion.NewsListScreen())))
+        val fragment = supportFragmentManager.findFragmentById(R.id.fragment_container)
+        if (savedInstanceState == null && fragment == null) {
+            navigator.applyCommands(arrayOf<Command>(Forward(Screens.Companion.NewsListScreen())))
+        }
     }
 
     override fun onBackPressed() {
