@@ -3,11 +3,20 @@ package ru.makproductions.tinkoffinternship.model.db
 import android.arch.persistence.room.Database
 import android.arch.persistence.room.Room
 import android.arch.persistence.room.RoomDatabase
+import android.arch.persistence.room.TypeConverters
 import android.content.Context
 import ru.makproductions.tinkoffinternship.model.dao.NewsDao
+import ru.makproductions.tinkoffinternship.model.room.Converters
 import ru.makproductions.tinkoffinternship.model.room.entity.RoomNewsItem
+import ru.makproductions.tinkoffinternship.model.room.entity.RoomNewsItemLink
+import ru.makproductions.tinkoffinternship.model.room.entity.RoomNewsItemRegister
 
-@Database(entities = [RoomNewsItem::class], version = 2, exportSchema = false)
+@Database(
+    entities = [RoomNewsItemLink::class, RoomNewsItem::class, RoomNewsItemRegister::class],
+    version = 4,
+    exportSchema = false
+)
+@TypeConverters(Converters::class)
 abstract class NewsDatabase : RoomDatabase() {
 
     companion object {

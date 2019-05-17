@@ -2,6 +2,7 @@ package ru.makproductions.tinkoffinternship.model.repo
 
 import io.reactivex.Single
 import io.reactivex.schedulers.Schedulers
+import ru.makproductions.tinkoffinternship.model.api.NewsItem
 import ru.makproductions.tinkoffinternship.model.api.NewsItemContainer
 import ru.makproductions.tinkoffinternship.model.api.NewsItemLink
 import ru.makproductions.tinkoffinternship.model.api.NewsListContainer
@@ -11,10 +12,10 @@ import ru.makproductions.tinkoffinternship.utils.NetworkStatus
 import timber.log.Timber
 
 class NewsRepo(private val iNetApi: INetApi, private val cache: ICache) {
-    var isCached: Boolean = false
+    var isListCached: Boolean = false
     fun loadNews(): Single<NewsListContainer> {
-        Timber.e("Loading... Is it cached? " + if (isCached) "Yes" else "No")
-        if (!NetworkStatus.isOnline || isCached) {
+        Timber.e("Loading... Is it cached? " + if (isListCached) "Yes" else "No")
+        if (!NetworkStatus.isOnline || isListCached) {
             return cache.loadNewsLinks().subscribeOn(Schedulers.io())
         } else {
             return iNetApi.getNews().subscribeOn(Schedulers.io())
@@ -27,10 +28,22 @@ class NewsRepo(private val iNetApi: INetApi, private val cache: ICache) {
 
     fun saveNews(newsItemLinks: ArrayList<NewsItemLink>) {
         cache.saveNewsLinks(newsItemLinks)
-        isCached = true
+        isListCached = true
     }
 
     fun loadNewsItem(id: Int): Single<NewsItemContainer> {
-        return iNetApi.getNewsItem(id).subscribeOn(Schedulers.io())
+        val isCached = cache.isIdInRegister(id).subscribeOn(Schedulers.io()).blockingGet()
+        if (!isCached) {
+            Timber.e("item with id = " + id + " not cached")
+            return iNetApi.getNewsItem(id).subscribeOn(Schedulers.io())
+        } else {
+            Timber.e("item with id = " + id + " cached. Loading...")
+            return cache.loadNewsItem(id).subscribeOn(Schedulers.io())
+        }
+    }
+
+    fun saveNewsItem(newsItem: NewsItem) {
+        cache.saveNewsItem(newsItem)
+        cache.saveIdToRegister(newsItem.title.id)
     }
 }
