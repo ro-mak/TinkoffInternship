@@ -8,9 +8,9 @@ import ru.terrakok.cicerone.android.support.SupportAppScreen
 
 class Screens : Screen() {
     companion object {
-        class NewsScreen : SupportAppScreen() {
+        class NewsScreen(val id: Int) : SupportAppScreen() {
             override fun getFragment(): Fragment {
-                return NewsFragment()
+                return NewsFragment.getInstance(id)
             }
         }
 

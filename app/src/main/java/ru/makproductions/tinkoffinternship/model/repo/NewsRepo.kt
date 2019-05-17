@@ -2,6 +2,7 @@ package ru.makproductions.tinkoffinternship.model.repo
 
 import io.reactivex.Single
 import io.reactivex.schedulers.Schedulers
+import ru.makproductions.tinkoffinternship.model.api.NewsItemContainer
 import ru.makproductions.tinkoffinternship.model.api.NewsItemLink
 import ru.makproductions.tinkoffinternship.model.api.NewsListContainer
 import ru.makproductions.tinkoffinternship.model.cache.ICache
@@ -27,5 +28,9 @@ class NewsRepo(private val iNetApi: INetApi, private val cache: ICache) {
     fun saveNews(newsItemLinks: ArrayList<NewsItemLink>) {
         cache.saveNewsLinks(newsItemLinks)
         isCached = true
+    }
+
+    fun loadNewsItem(id: Int): Single<NewsItemContainer> {
+        return iNetApi.getNewsItem(id).subscribeOn(Schedulers.io())
     }
 }

@@ -93,7 +93,7 @@ class NewsListPresenter(private val scheduler: Scheduler) : MvpPresenter<NewsLis
                 clickSubjects.get(position).subscribe(
                     { clickSubjectsNewsItemView ->
                         Timber.e("Clicked on =" + position)
-                        router.navigateTo(Screens.Companion.NewsScreen())
+                        router.navigateTo(Screens.Companion.NewsScreen(newsItemLink.id))
                     },
                     { Timber.e(it) })
             )
