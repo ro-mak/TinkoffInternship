@@ -21,15 +21,24 @@ class NewsListPresenter(private val scheduler: Scheduler) : MvpPresenter<NewsLis
     @Inject
     lateinit var newsRepo: NewsRepo
 
-    override fun onFirstViewAttach() {
-        super.onFirstViewAttach()
-        refreshNews()
+    fun loadNews() {
+        disposables.add(
+            newsRepo.loadNews().observeOn(scheduler).subscribe(
+                { newsListContainer ->
+                    run {
+                        val newsItemLinks = (ArrayList(newsListContainer.newsItemLinks))
+                        newsAdapterPresenterImpl.setNewsItemsList(newsItemLinks)
+                        newsRepo.saveNews(newsItemLinks)
+                    }
+                },
+                { Timber.e(it) })
+        )
     }
 
 
     fun refreshNews() {
         disposables.add(
-            newsRepo.loadNews().observeOn(scheduler).subscribe(
+            newsRepo.refreshNews().observeOn(scheduler).subscribe(
                 { newsListContainer ->
                     run {
                         val newsItemLinks = (ArrayList(newsListContainer.newsItemLinks))
@@ -61,7 +70,6 @@ class NewsListPresenter(private val scheduler: Scheduler) : MvpPresenter<NewsLis
             if (clickSubjects.size == 0) {
                 val elementsToUpdate = getListCount()
                 for (i in 0 until elementsToUpdate) {
-                    Timber.e("adding publish subject " + i)
                     clickSubjects.add(PublishSubject.create<NewsItemView>())
                 }
             }
