@@ -16,7 +16,16 @@ class NewsPresenter(val scheduler: Scheduler) : MvpPresenter<NewsView>() {
     lateinit var disposable: Disposable
     fun loadNewsItem(id: Int) {
         disposable = newsRepo.loadNewsItem(id).observeOn(scheduler)
-            .subscribe({ newsItemContainer -> viewState.onNewsItemLoaded(newsItemContainer.newsItem.content) },
+            .subscribe(
+                { newsItemContainer ->
+                    newsRepo.saveNewsItem(newsItemContainer.newsItem)
+                    viewState.onNewsItemLoaded(newsItemContainer.newsItem.content)
+                },
                 { Timber.e(it) })
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        disposable.dispose()
     }
 }
