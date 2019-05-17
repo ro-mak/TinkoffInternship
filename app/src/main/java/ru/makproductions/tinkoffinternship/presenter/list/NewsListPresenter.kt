@@ -21,10 +21,22 @@ class NewsListPresenter(private val scheduler: Scheduler) : MvpPresenter<NewsLis
     @Inject
     lateinit var newsRepo: NewsRepo
 
-    fun loadNews() {
+    override fun onFirstViewAttach() {
+        super.onFirstViewAttach()
+        refreshNews()
+    }
+
+
+    fun refreshNews() {
         disposables.add(
             newsRepo.loadNews().observeOn(scheduler).subscribe(
-                { newsListContainer -> newsAdapterPresenterImpl.setNewsItemsList((ArrayList(newsListContainer.newsItemLinks))) },
+                { newsListContainer ->
+                    run {
+                        val newsItemLinks = (ArrayList(newsListContainer.newsItemLinks))
+                        newsAdapterPresenterImpl.setNewsItemsList(newsItemLinks)
+                        newsRepo.saveNews(newsItemLinks)
+                    }
+                },
                 { Timber.e(it) })
         )
     }
@@ -46,10 +58,12 @@ class NewsListPresenter(private val scheduler: Scheduler) : MvpPresenter<NewsLis
         private var clickSubjects = ArrayList<PublishSubject<NewsItemView>>()
         private var listItems = ArrayList<NewsItemLink>()
         private fun createPublishSubjects() {
-            val elementsToUpdate = listItems.size
-            for (i in 0 until elementsToUpdate) {
-                Timber.e("adding publish subject " + i)
-                clickSubjects.add(PublishSubject.create<NewsItemView>())
+            if (clickSubjects.size == 0) {
+                val elementsToUpdate = getListCount()
+                for (i in 0 until elementsToUpdate) {
+                    Timber.e("adding publish subject " + i)
+                    clickSubjects.add(PublishSubject.create<NewsItemView>())
+                }
             }
         }
 
@@ -68,7 +82,11 @@ class NewsListPresenter(private val scheduler: Scheduler) : MvpPresenter<NewsLis
             val newsItemLink = listItems.get(position)
             newsItemView.setText(newsItemLink.text)
             disposables.add(
-                clickSubjects.get(position).subscribe({ clickSubjectsNewsItemView -> router.navigateTo(Screens.Companion.NewsScreen()) },
+                clickSubjects.get(position).subscribe(
+                    { clickSubjectsNewsItemView ->
+                        Timber.e("Clicked on =" + position)
+                        router.navigateTo(Screens.Companion.NewsScreen())
+                    },
                     { Timber.e(it) })
             )
         }
@@ -78,6 +96,14 @@ class NewsListPresenter(private val scheduler: Scheduler) : MvpPresenter<NewsLis
             this.listItems = newsItems
             createPublishSubjects()
             viewState.onNewsLoaded()
+        }
+    }
+
+    override fun onDestroy() {
+        Timber.e("OnDestroy")
+        super.onDestroy()
+        for (disposable in disposables) {
+            disposable.dispose()
         }
     }
 }

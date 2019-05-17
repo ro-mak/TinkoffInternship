@@ -1,6 +1,8 @@
 package ru.makproductions.tinkoffinternship.ui.fragment
 
+import android.content.Context
 import android.os.Bundle
+import android.support.v7.widget.DividerItemDecoration
 import android.support.v7.widget.LinearLayoutManager
 import android.view.*
 import com.arellomobile.mvp.MvpAppCompatFragment
@@ -32,7 +34,6 @@ class NewsListFragment : MvpAppCompatFragment(), NewsListView {
         Timber.e("OnCreateView")
         val view = inflater.inflate(R.layout.news_list_fragment, container, false)
         setupRecycler(view)
-        presenter.loadNews()
         setHasOptionsMenu(true)
         return view
     }
@@ -41,11 +42,18 @@ class NewsListFragment : MvpAppCompatFragment(), NewsListView {
         val linearLayoutManager = LinearLayoutManager(activity)
         view.news_recycler.layoutManager = linearLayoutManager
         val newsAdapter = NewsAdapter(presenter.newsAdapterPresenterImpl)
+        val dividerItemDecoration = DividerItemDecoration(context, DividerItemDecoration.VERTICAL)
+        view.news_recycler.addItemDecoration(dividerItemDecoration)
         view.news_recycler.adapter = newsAdapter
         view.news_swiperefresh.setOnRefreshListener({
             Timber.e("Refresh by swipe")
-            presenter.loadNews()
+            presenter.refreshNews()
         })
+    }
+
+    override fun onAttach(context: Context?) {
+        Timber.e("onAttach")
+        super.onAttach(context)
     }
 
     override fun onNewsLoaded() {
@@ -59,10 +67,10 @@ class NewsListFragment : MvpAppCompatFragment(), NewsListView {
     }
 
     override fun onOptionsItemSelected(item: MenuItem?): Boolean {
-        var id = item?.itemId
+        val id = item?.itemId
         if (id == R.id.menu_refresh) {
             Timber.e("Refresh by button")
-            presenter.loadNews()
+            presenter.refreshNews()
         }
         return super.onOptionsItemSelected(item)
     }

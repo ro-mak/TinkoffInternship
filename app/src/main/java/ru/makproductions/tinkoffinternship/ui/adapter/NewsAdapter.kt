@@ -10,6 +10,7 @@ import kotlinx.android.synthetic.main.news_list_item.view.*
 import ru.makproductions.tinkoffinternship.R
 import ru.makproductions.tinkoffinternship.presenter.list.NewsAdapterPresenter
 import ru.makproductions.tinkoffinternship.view.list.NewsItemView
+import timber.log.Timber
 
 class NewsAdapter(private var presenter: NewsAdapterPresenter) : RecyclerView.Adapter<NewsAdapter.NewsViewHolder>() {
 
@@ -28,10 +29,11 @@ class NewsAdapter(private var presenter: NewsAdapterPresenter) : RecyclerView.Ad
     }
 
     override fun onBindViewHolder(viewHolder: NewsViewHolder, position: Int) {
+        Timber.e("onBindViewHolder = " + position)
         RxView.clicks(viewHolder.itemView).map<NewsViewHolder> { obj -> viewHolder }
             .subscribe(presenter.getClickSubject(position))
-        presenter.bindView(viewHolder)
         viewHolder.pos = position
+        presenter.bindView(viewHolder)
     }
 
     class NewsViewHolder(view: View) : RecyclerView.ViewHolder(view), NewsItemView {

@@ -11,10 +11,11 @@ import ru.makproductions.tinkoffinternship.R
 import ru.makproductions.tinkoffinternship.navigation.NewsNavigator
 import ru.makproductions.tinkoffinternship.navigation.Screens
 import ru.makproductions.tinkoffinternship.presenter.main.MainPresenter
+import ru.makproductions.tinkoffinternship.ui.fragment.NewsFragment
 import ru.makproductions.tinkoffinternship.view.main.MainView
 import ru.terrakok.cicerone.NavigatorHolder
 import ru.terrakok.cicerone.commands.Command
-import ru.terrakok.cicerone.commands.Replace
+import ru.terrakok.cicerone.commands.Forward
 import timber.log.Timber
 import javax.inject.Inject
 
@@ -41,12 +42,16 @@ class MainActivity : MvpAppCompatActivity(), MainView {
         setContentView(R.layout.activity_main)
         App.instance.appComponent.inject(this)
         Timber.e("creating fragment! SavedInstance = " + savedInstanceState + " fragment_container = " + fragment_container)
-        navigator.applyCommands(arrayOf<Command>(Replace(Screens.Companion.NewsListScreen())))
+        navigator.applyCommands(arrayOf<Command>(Forward(Screens.Companion.NewsListScreen())))
     }
 
     override fun onBackPressed() {
-        Timber.e("onBackPressed")
-        super.onBackPressed()
+        val fragment = supportFragmentManager.findFragmentById(R.id.fragment_container)
+        if (fragment is NewsFragment) {
+            mainPresenter.navigateToNewsListScreen()
+        } else {
+            super.onBackPressed()
+        }
     }
 
     override fun onResumeFragments() {

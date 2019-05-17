@@ -7,7 +7,7 @@ import android.content.Context
 import ru.makproductions.tinkoffinternship.model.dao.NewsDao
 import ru.makproductions.tinkoffinternship.model.room.entity.RoomNewsItem
 
-@Database(entities = [RoomNewsItem::class], version = 1, exportSchema = false)
+@Database(entities = [RoomNewsItem::class], version = 2, exportSchema = false)
 abstract class NewsDatabase : RoomDatabase() {
 
     companion object {
