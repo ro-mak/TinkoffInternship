@@ -2,9 +2,12 @@ package ru.makproductions.tinkoffinternship.presenter.list
 
 import com.arellomobile.mvp.InjectViewState
 import com.arellomobile.mvp.MvpPresenter
+import io.reactivex.Completable
+import io.reactivex.CompletableObserver
 import io.reactivex.Observer
 import io.reactivex.Scheduler
 import io.reactivex.disposables.Disposable
+import io.reactivex.schedulers.Schedulers
 import io.reactivex.subjects.PublishSubject
 import ru.makproductions.tinkoffinternship.model.api.NewsItemLink
 import ru.makproductions.tinkoffinternship.model.repo.NewsRepo
@@ -13,7 +16,10 @@ import ru.makproductions.tinkoffinternship.view.list.NewsItemView
 import ru.makproductions.tinkoffinternship.view.list.NewsListView
 import ru.terrakok.cicerone.Router
 import timber.log.Timber
+import java.text.SimpleDateFormat
+import java.util.*
 import javax.inject.Inject
+import kotlin.collections.ArrayList
 
 @InjectViewState
 class NewsListPresenter(private val scheduler: Scheduler) : MvpPresenter<NewsListView>() {
@@ -88,7 +94,7 @@ class NewsListPresenter(private val scheduler: Scheduler) : MvpPresenter<NewsLis
             val position: Int = newsItemView.pos
             Timber.e("ListPresenter bindView position = " + position)
             val newsItemLink = listItems.get(position)
-            newsItemView.setText(newsItemLink.text)
+            newsItemView.setText(newsItemLink.text + "\n\n" + SimpleDateFormat("dd-MM-yyyy").format(Date(newsItemLink.publicationDate.millis)))
             disposables.add(
                 clickSubjects.get(position).subscribe(
                     { clickSubjectsNewsItemView ->
@@ -101,9 +107,38 @@ class NewsListPresenter(private val scheduler: Scheduler) : MvpPresenter<NewsLis
 
         override fun setNewsItemsList(newsItems: ArrayList<NewsItemLink>) {
             Timber.e("setNewsItemsList")
-            this.listItems = newsItems
-            createPublishSubjects()
-            viewState.onNewsLoaded()
+            val observer = object : CompletableObserver {
+                override fun onComplete() {
+                    createPublishSubjects()
+                    viewState.onNewsLoaded()
+                }
+
+                override fun onSubscribe(d: Disposable) {
+                    disposables.add(d)
+                }
+
+                override fun onError(e: Throwable) {
+                    Timber.e(e)
+                }
+            }
+            Completable.create({
+                val sortedMap = TreeMap<Long, NewsItemLink>()
+                try {
+                    for (i in 0 until newsItems.size) {
+                        val link = newsItems[i]
+                        sortedMap.put(link.publicationDate.millis, link)
+                    }
+                    val sortedList = sortedMap.values.toList() as ArrayList<NewsItemLink>
+                    for (i in (sortedList.size - 1) downTo 0) {
+                        listItems.add(sortedList[i])
+                    }
+                    it.onComplete()
+                } catch (e: Exception) {
+                    it.onError(e)
+                }
+
+            }).subscribeOn(Schedulers.computation()).observeOn(scheduler).subscribe(observer)
+
         }
     }
 

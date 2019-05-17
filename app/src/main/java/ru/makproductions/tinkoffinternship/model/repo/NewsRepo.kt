@@ -1,7 +1,9 @@
 package ru.makproductions.tinkoffinternship.model.repo
 
+import android.content.Context
 import io.reactivex.Single
 import io.reactivex.schedulers.Schedulers
+import ru.makproductions.tinkoffinternship.App
 import ru.makproductions.tinkoffinternship.model.api.NewsItem
 import ru.makproductions.tinkoffinternship.model.api.NewsItemContainer
 import ru.makproductions.tinkoffinternship.model.api.NewsItemLink
@@ -12,7 +14,19 @@ import ru.makproductions.tinkoffinternship.utils.NetworkStatus
 import timber.log.Timber
 
 class NewsRepo(private val iNetApi: INetApi, private val cache: ICache) {
+    var cachedKey = "isCached"
     var isListCached: Boolean = false
+        get() {
+            val context = App.instance
+            val sharedPreferences = context.getSharedPreferences("NewsRepo", Context.MODE_PRIVATE)
+            return sharedPreferences.getBoolean(cachedKey, false)
+        }
+        set(value) {
+            field = value
+            val context = App.instance
+            val sharedPreferences = context.getSharedPreferences("NewsRepo", Context.MODE_PRIVATE)
+            sharedPreferences.edit().putBoolean(cachedKey, value).apply()
+        }
     fun loadNews(): Single<NewsListContainer> {
         Timber.e("Loading... Is it cached? " + if (isListCached) "Yes" else "No")
         if (!NetworkStatus.isOnline || isListCached) {
